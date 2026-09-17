@@ -89,9 +89,17 @@ jobs:
           }
 
           echo "=== Verifying API token ==="
+          # Account-owned tokens (created in the account's API tokens page)
+          # only verify via the account-scoped endpoint; user tokens use
+          # /user/tokens/verify. Try both before giving up.
           VERIFY_STATUS=$(curl -sS -X GET -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -o /tmp/cf-verify.json -w '%{http_code}' \
             "https://api.cloudflare.com/client/v4/user/tokens/verify")
+          if [ "${VERIFY_STATUS}" != "200" ]; then
+            VERIFY_STATUS=$(curl -sS -X GET -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -o /tmp/cf-verify.json -w '%{http_code}' \
+              "${BASE}/tokens/verify")
+          fi
           if [ "${VERIFY_STATUS}" != "200" ]; then
             echo "❌ CLOUDFLARE_API_TOKEN verification failed: HTTP ${VERIFY_STATUS}"
             jq -c '.errors' /tmp/cf-verify.json 2>/dev/null || true
