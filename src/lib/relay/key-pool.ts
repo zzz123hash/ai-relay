@@ -224,9 +224,11 @@ export function markCooldown(key: ApiKey): void {
  */
 export async function initAllKeyPools(configs: Record<string, { envKeyField: string; name: string }>, forceRefresh = false): Promise<void> {
   for (const config of Object.values(configs)) {
-    if (!keyPools.has(config.name) || forceRefresh) {
-      await getKeyPool(config as ProviderConfig, forceRefresh);
-    }
+    // Always route through getKeyPool: for existing pools this performs the
+    // TTL-gated managed-version check, so admin/status stats pick up newly
+    // added managed keys within the check interval instead of staying stale
+    // until isolate recycle.
+    await getKeyPool(config as ProviderConfig, forceRefresh);
   }
 }
 
