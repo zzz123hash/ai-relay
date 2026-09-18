@@ -99,6 +99,13 @@ export function providerSupportsModel(provider: ProviderConfig, lowerModel: stri
       if (m.id && m.id.toLowerCase() === lowerModel) return true;
     }
   }
+  // A modelMapping key is a user-facing model name this provider serves
+  // (translated to its real upstream id), so same-model fallback candidates
+  // are not excluded when the id differs from the upstream's own naming.
+  if (provider.modelMapping) {
+    if (provider.modelMapping[lowerModel]) return true;
+    if (provider.modelMapping[lowerModel.toLowerCase()]) return true;
+  }
   for (const prefix of provider.modelPrefixes) {
     const isWildcard = prefix.endsWith('-') || prefix.endsWith('.') || prefix.endsWith('_');
     if (isWildcard) {
