@@ -78,6 +78,9 @@ export async function POST(request: NextRequest) {
               .map(([k, v]) => [k, v as string])
           )
         : undefined,
+    fallbackProviders: Array.isArray(body.fallbackProviders)
+      ? body.fallbackProviders.filter((x: unknown): x is string => typeof x === 'string' && x.trim() !== '')
+      : undefined,
     isCustom: true,
   };
 
