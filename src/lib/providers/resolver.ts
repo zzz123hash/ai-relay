@@ -361,9 +361,17 @@ export async function resolveFallbackModel(originalModel: string, targetProvider
       return 'claude-sonnet-4-6';
 
     default:
-      // Fallback: use the first model ID in the provider's model list if available
-      if (targetProvider && targetProvider.models && targetProvider.models.length > 0) {
-        return targetProvider.models[0].id;
+      // Custom providers: honor modelMapping aliases and listed model ids,
+      // otherwise pass the original name through for the upstream to judge.
+      // Never silently substitute a different model.
+      if (targetProvider && targetProvider.modelMapping) {
+        const mapped = targetProvider.modelMapping[originalModel] || targetProvider.modelMapping[lowerModel];
+        if (mapped) return mapped;
+      }
+      if (targetProvider && Array.isArray(targetProvider.models)) {
+        if (targetProvider.models.some((m) => m.id && m.id.toLowerCase() === lowerModel)) {
+          return originalModel;
+        }
       }
       return originalModel;
   }
