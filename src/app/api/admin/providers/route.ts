@@ -70,6 +70,14 @@ export async function POST(request: NextRequest) {
     envBaseUrlField: body.envBaseUrlField || undefined,
     userAgent: typeof body.userAgent === 'string' && body.userAgent.trim() ? body.userAgent.trim() : undefined,
     models: Array.isArray(models) ? models : [],
+    modelMapping:
+      body.modelMapping && typeof body.modelMapping === 'object' && !Array.isArray(body.modelMapping)
+        ? Object.fromEntries(
+            Object.entries(body.modelMapping).filter(
+              ([k, v]) => typeof k === 'string' && k.trim() && typeof v === 'string' && v.trim()
+            )
+          )
+        : undefined,
     isCustom: true,
   };
 
