@@ -66,11 +66,13 @@ export function isRawForwardEligible(input: {
   isAnthropicProvider: boolean;
   modelChanged: boolean;
   injectStreamOptions: boolean;
+  strippedThinking?: boolean;
 }): boolean {
-  const { apiType, isAnthropicProvider, modelChanged, injectStreamOptions } = input;
+  const { apiType, isAnthropicProvider, modelChanged, injectStreamOptions, strippedThinking } = input;
   const bodyRewritten =
     modelChanged ||
     injectStreamOptions ||
+    strippedThinking === true ||
     (apiType === 'chat' && isAnthropicProvider) ||
     (apiType === 'anthropicMessages' && !isAnthropicProvider);
   return !bodyRewritten;
@@ -492,6 +494,7 @@ async function tryProviderWithRetries(
     // For Responses API: pass body directly (no Anthropic transform — Responses API is OpenAI-only)
     // For Chat API: inject stream_options and optionally transform to Anthropic format
     let requestBody: Record<string, unknown>;
+    let strippedThinking = false;
     if (apiType === 'responses') {
       requestBody = { ...body, model: resolvedModel };
     } else if (apiType === 'anthropicMessages') {
@@ -512,6 +515,11 @@ async function tryProviderWithRetries(
         const existingOpts = typeof body.stream_options === 'object' && body.stream_options !== null ? body.stream_options : {};
         bodyWithResolvedModel.stream_options = { include_usage: true, ...existingOpts };
       }
+      // Agent clients may send Anthropic-style `thinking`; strict OpenAI-format
+      // gateways (DeepSeek/NIM et al.) reject it with 400. Strip it — thinking
+      // stays controllable via `reasoning_effort` where the upstream supports it.
+      strippedThinking = !isAnthropic && 'thinking' in bodyWithResolvedModel;
+      if (strippedThinking) delete bodyWithResolvedModel.thinking;
       requestBody = isAnthropic ? transformToAnthropic(bodyWithResolvedModel as ChatCompletionRequest) : bodyWithResolvedModel;
     }
 
@@ -525,6 +533,7 @@ async function tryProviderWithRetries(
         isAnthropicProvider: isAnthropic,
         modelChanged: resolvedModel !== body.model,
         injectStreamOptions,
+        strippedThinking,
       })
         ? rawBody
         : undefined;

@@ -99,4 +99,28 @@ describe('isRawForwardEligible', () => {
       })
     ).toBe(false);
   });
+
+  it('disables raw forward when anthropic-style thinking is stripped for openai upstreams', () => {
+    expect(
+      isRawForwardEligible({
+        apiType: 'chat',
+        isAnthropicProvider: false,
+        modelChanged: false,
+        injectStreamOptions: false,
+        strippedThinking: true,
+      })
+    ).toBe(false);
+  });
+
+  it('keeps raw forward eligible when no thinking stripping occurred (openai upstream)', () => {
+    expect(
+      isRawForwardEligible({
+        apiType: 'chat',
+        isAnthropicProvider: false,
+        modelChanged: false,
+        injectStreamOptions: false,
+        strippedThinking: false,
+      })
+    ).toBe(true);
+  });
 });
