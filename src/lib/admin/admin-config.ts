@@ -1163,6 +1163,9 @@ function validateCustomProviders(customProviders: any): Record<string, ProviderC
         ? val.models.filter((m: any) => m && typeof m === 'object' && typeof m.id === 'string' && typeof m.displayName === 'string') 
         : [],
       modelMapping: val.modelMapping && typeof val.modelMapping === 'object' && !Array.isArray(val.modelMapping) ? val.modelMapping : undefined,
+      fallbackProviders: Array.isArray(val.fallbackProviders)
+        ? val.fallbackProviders.filter((x: unknown): x is string => typeof x === 'string' && x.trim() !== '')
+        : undefined,
       isCustom: true,
     };
     validated[val.name] = config;
