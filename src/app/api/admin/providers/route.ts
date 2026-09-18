@@ -73,9 +73,9 @@ export async function POST(request: NextRequest) {
     modelMapping:
       body.modelMapping && typeof body.modelMapping === 'object' && !Array.isArray(body.modelMapping)
         ? Object.fromEntries(
-            Object.entries(body.modelMapping).filter(
-              ([k, v]) => typeof k === 'string' && k.trim() && typeof v === 'string' && v.trim()
-            )
+            Object.entries(body.modelMapping as Record<string, unknown>)
+              .filter(([k, v]) => k.trim() !== '' && typeof v === 'string' && (v as string).trim() !== '')
+              .map(([k, v]) => [k, v as string])
           )
         : undefined,
     isCustom: true,
