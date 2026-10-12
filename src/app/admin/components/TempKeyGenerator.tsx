@@ -92,6 +92,7 @@ export default function TempKeyGenerator({
             <option value={86400}>{t.duration1d}</option>
             <option value={604800}>{t.duration7d}</option>
             <option value={2592000}>{t.duration30d}</option>
+            <option value={315360000}>{t.durationPermanent}</option>
           </select>
         </div>
 
